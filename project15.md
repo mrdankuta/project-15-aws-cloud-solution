@@ -7,3 +7,17 @@
 - Create Public Route Table
 - Associate Public Subnets to Public Route Table
 - Associate Private Subnets to Private Route Table
+- Edit routes for public route table to allow subnets communicate with the internet gateway. For Destination allow any ip `0.0.0.0/0`. Under Target, select the Internet Gateway you created earlier. Internet Gateway is two-way, i.e. allows the subnet to connect to the internet and for the internet to connect to the subnet. Nat Gateway on the other hand, is one-way. Only allows the subnet to the internet.
+- Allocate an Elastic IP to be associated to the NAT Gateway. Create the NAT Gateway next
+- Create a NAT Gateway. Add it to one of the public subnets. Associate it with the Elastic IP from the previous step.
+- Return to Route Tables. Edit routes for private route table to allow subnets communicate with the NAT gateway. For Destination allow any ip `0.0.0.0/0`. Under Target, select the NAT Gateway you created earlier.
+- Create security group for the External Load Balancer. Open ports `80` for `http` and `443` for `https` connections from anywhere `0.0.0.0/0`
+- Create security group for Bastion server. Open port `22` for `SSH` and limit connections to be from `my IP`
+- Create security group for Nginx Reverse Proxy server. Open port `22` for `SSH` and limit connections to be from Bastion Server only. Open ports `80` for `http` and `443` for `https` traffic from External Load Balancer Server only.
+- Create security group for the Internal Load Balancer. Open ports `80` for `http` and `443` for `https` connections from Nginx Reverse Proxy Servers Only. Open port `22` for `SSH` and limit connections to be from Bastion Server only.
+- Create security group for the Web server. Open ports `80` for `http` and `443` for `https` connections from Internal Load Balancer Servers Only. Open port `22` for `SSH` and limit connections to be from Bastion Server only.
+- Create security group for the data layer. Open ports `3306` for `MYSQL` connections from Webservers and Bastion server. Open port `2049` for `NFS` mounting from webservers.
+- Create a Certificate for the domain to be attached to the Application Load Balancers later on.
+- Create an Elastic File System. In the Network settings, select `Private Subnet 1` and `Private Subnet 2` (the subnets where the webservers will exist) for the Mount Targets. Attached the Data Layer security group.
+- Create two Access Points on the EFS for the two apps we intend to deploy on this infrastructure. One Access Point for the Wordpress website, the second for the Tooling Wesite. This is to ensure that the file structure is clean and files from both apps do not overwrite themselves.
+- Create a KMS key from Key Management Service (KMS) to be used to encrypt the database instance. Use the `Symmetric` key type. Set Key Administrative and Usage Permissions to role or user
